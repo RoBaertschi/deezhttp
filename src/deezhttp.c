@@ -12,15 +12,20 @@
 #include <unistd.h>
 
 #include "error.h"
-#include "src/header.h"
 
-void handle_message(const char* message, size_t message_len) {}
+void parse_until_content_length(int cfd) {}
+
+void handle_message(int cfd) {
+  /*char status_line[] = "HTTP/1.0 200 OK\r\nContent-Type: text/plain\r\n\r\n";*/
+  /*write(cfd, status_line, sizeof(status_line) / sizeof(char) - 1);*/
+  /*write(cfd, message, message_len);*/
+}
 
 int main(int argc, char** argv) {
   int sockfd, len;
   struct sockaddr_in addr;
   socklen_t addr_size;
-  int newline_found = 0;
+  bool newline_found = false;
   char protoname[] = "tcp";
 
   struct protoent* protoent;
@@ -65,15 +70,18 @@ int main(int argc, char** argv) {
     size_t string_cap = 0;
     size_t string_size = 0;
     bool received = false;
-    
-    char status_line[] = "HTTP/1.0 200 OK \r\nContent-Length: 0\r\n\r\n";
-    write(cfd, status_line, sizeof(status_line) / sizeof(char));
 
     while ((nbytes_read = read(cfd, buffer, BUFSIZ)) > 0) {
       if (nbytes_read + string_size > string_cap) {
-        string = malloc(nbytes_read + string_size * sizeof(char));
+        char* new_string = malloc(nbytes_read + string_size * sizeof(char));
+        memcpy(new_string, string, string_size);
+        free(string);
+        string = new_string;
         string_cap = nbytes_read + string_size;
       }
+
+      memcpy(string + string_size, buffer, nbytes_read);
+      string_size += nbytes_read;
 
       if (!received) {
         printf("received:\n");
@@ -81,19 +89,30 @@ int main(int argc, char** argv) {
       }
       write(STDOUT_FILENO, buffer, nbytes_read);
       if (buffer[nbytes_read - 1] == '\n') {
-        newline_found = 1;
+        newline_found = true;
       }
       for (int i = 0; i < nbytes_read; i++) {
         buffer[i]++;
       }
-      // write(cfd, buffer, nbytes_read);
       if (newline_found) {
+        printf("\n");
+        newline_found = false;
         break;
       }
     }
+    if (string_cap <= string_size) {
+      string = realloc(string, string_size + 1);
+      string[string_size] = '\0';
+    }
+    string_size += 1;
+    /*handle_message(cfd, string, string_size);*/
     received = false;
     free(string);
+    string_size = 0;
+    string_cap = 0;
+    string = NULL;
     close(cfd);
+    printf("closed connection with client\n");
   }
 
   return 0;
