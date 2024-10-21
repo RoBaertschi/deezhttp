@@ -6,6 +6,6 @@
 
 void panic(const char* format, ...);
 
-#define CHECK_MALLOC(variable) if (variable == NULL) panic( __FILE__ __LINE__ " deezhttp ran out of memory / alloc failed %s", strerror(errno))
+#define CHECK_MALLOC(variable) if (variable == NULL) panic( __FILE__ ":%d deezhttp ran out of memory / alloc failed %s",  __LINE__, strerror(errno))
 
 #endif // DEEZHTTP_ERROR_H_

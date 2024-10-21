@@ -1,8 +1,10 @@
 #include "lexer.h"
+#include "error.h"
 #include <stdlib.h>
 
 dh_lexer dh_create_lexer(const char* string, size_t string_len) {
     const char* allocated_string = malloc(string_len / sizeof(char));
+    CHECK_MALLOC(allocated_string);
 
     dh_lexer lexer = (dh_lexer){
         .position = 0,
