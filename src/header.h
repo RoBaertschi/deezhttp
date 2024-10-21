@@ -43,6 +43,8 @@ typedef struct {
   dh_protocol protocol;
   dh_status_code status_code;
   dh_header* header;
+  const char* reason_phrase;
+  size_t reason_phrase_len;
   const char* body;
   size_t body_len;
 } dh_response;

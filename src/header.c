@@ -105,14 +105,14 @@ const char* dh_response_string(size_t* length, dh_response* response) {
   size_t header_len;
   const char* header_str = dh_header_string(&header_len, response->header);
 
-  len =
-    protocol_len + response->status_code + header_len + response->body_len + 6;
+  len = protocol_len + response->status_code + header_len + response->body_len +
+        response->reason_phrase_len + 6;
 
   char* str = malloc(len + 1);
   CHECK_MALLOC(str);
-
-  snprintf(str, len + 1, "%s %d\r\n%s\r\n%s", protocol_str,
-           response->status_code, header_str, response->body);
+  snprintf(str, len + 1, "%s %d %s\r\n%s\r\n%s", protocol_str,
+           response->status_code, response->reason_phrase, header_str,
+           response->body);
 
   *length = len;
   return str;
