@@ -11,42 +11,10 @@
 #include <unistd.h>
 
 #include "error.h"
-#include "src/header.h"
 
 #define PROJECT_NAME "deezhttp"
 
 int main(int argc, char** argv) {
-  dh_request request = (dh_request){
-    .method = DH_GET,
-    .request_uri = "/",
-    .request_uri_len = 1,
-    .protocol = DH_HTTP_1_0,
-    .header =
-      &(dh_header){
-        .fields =
-          (dh_header_field[]){
-            (dh_header_field){.key = "Host",
-                              .value = "localhost",
-                              .key_len = 5,
-                              .value_len = 10},
-            (dh_header_field){.key = "User-Agent",
-                              .value = "deezhttp",
-                              .key_len = 11,
-                              .value_len = 9},
-            (dh_header_field){
-              .key = "Accept", .value = "*/*", .key_len = 6, .value_len = 3},
-          },
-        .fields_len = 3,
-      },
-    .body = "",
-    .body_len = 0,
-  };
-
-  size_t request_str_len = 0;
-  const char* request_str = dh_request_string(&request_str_len, &request);
-  printf("%s\n", request_str);
-  free((void*)request_str);
-
   int sockfd, len;
   struct sockaddr_in addr;
   socklen_t addr_size;

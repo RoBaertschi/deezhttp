@@ -5,23 +5,13 @@
 #include <string.h>
 
 #include "error.h"
-#include "src/utils.h"
-
-const char* dh_header_field_to_string(dh_header_field* field) {
-  size_t len = field->key_len + field->value_len + 4;
-  char* str = malloc(len);
-  CHECK_MALLOC(str);
-
-  snprintf(str, len, "%s: %s", field->key, field->value);
-  return str;
-}
 
 const char* dh_header_field_string(size_t* length, dh_header_field* field) {
   size_t len = field->key_len + field->value_len + 4;
   char* str = malloc(len);
   CHECK_MALLOC(str);
 
-  snprintf(str, len, "%s: %s\n\r", field->key, field->value);
+  snprintf(str, len, "%s: %s\r\n", field->key, field->value);
   *length = len;
   return str;
 }
@@ -96,11 +86,33 @@ const char* dh_request_string(size_t* length, dh_request* request) {
   len = method_len + request->request_uri_len + protocol_len + header_len +
         request->body_len + 6;
 
-  char* str = malloc(len);
+  char* str = malloc(len + 1);
   CHECK_MALLOC(str);
 
-  snprintf(str, len, "%s %s %s\n%s\n%s", method_str, request->request_uri,
-           protocol_str, header_str, request->body);
+  snprintf(str, len + 1, "%s %s %s\r\n%s\r\n%s", method_str,
+           request->request_uri, protocol_str, header_str, request->body);
+
+  *length = len;
+  return str;
+}
+
+const char* dh_response_string(size_t* length, dh_response* response) {
+  size_t len, protocol_len;
+
+  const char* protocol_str =
+    dh_header_protocol_string(&protocol_len, response->protocol);
+
+  size_t header_len;
+  const char* header_str = dh_header_string(&header_len, response->header);
+
+  len =
+    protocol_len + response->status_code + header_len + response->body_len + 6;
+
+  char* str = malloc(len + 1);
+  CHECK_MALLOC(str);
+
+  snprintf(str, len + 1, "%s %d\r\n%s\r\n%s", protocol_str,
+           response->status_code, header_str, response->body);
 
   *length = len;
   return str;

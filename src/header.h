@@ -38,4 +38,15 @@ typedef struct {
 } dh_request;
 
 const char* dh_request_string(size_t* length, dh_request* request);
+
+typedef struct {
+  dh_protocol protocol;
+  dh_status_code status_code;
+  dh_header* header;
+  const char* body;
+  size_t body_len;
+} dh_response;
+
+const char* dh_response_string(size_t* length, dh_response* response);
+
 #endif  // DEEZHTTP_HEADER_H_
