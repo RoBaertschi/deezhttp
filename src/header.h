@@ -20,10 +20,6 @@ typedef struct {
 const char* dh_header_field_string(size_t* length, dh_header_field* field);
 
 typedef struct {
-  dh_http_method method;
-  const char* request_uri;
-  size_t request_uri_len;
-  dh_protocol protocol;
   dh_header_field* fields;
   size_t fields_len;
 } dh_header;
@@ -31,11 +27,16 @@ typedef struct {
 const char* dh_header_string(size_t* length, dh_header* header);
 
 typedef struct {
+  dh_http_method method;
+  const char* request_uri;
+  size_t request_uri_len;
+  dh_protocol protocol;
   dh_header* header;
   const char* body;
   size_t body_len;
-} dh_message;
+} dh_request;
 
-const char* dh_message_string(dh_message* message);
+const char* dh_request_string(size_t* length, dh_request* request);
+
 
 #endif  // DEEZHTTP_HEADER_H_

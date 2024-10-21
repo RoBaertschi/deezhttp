@@ -53,48 +53,81 @@ const char* dh_header_method_string(size_t* length, dh_http_method method) {
 }
 
 const char* dh_header_string(size_t* length, dh_header* header) {
-  size_t len;
-  size_t method_len;
-  const char* method_str = dh_header_method_string(&method_len, header->method);
-  size_t protocol_len;
-  const char* protocol_str =
-    dh_header_protocol_string(&protocol_len, header->protocol);
-
-  len = method_len + header->request_uri_len + protocol_len + 3;
-
+  size_t len = 0;
   for (size_t i = 0; i < header->fields_len; i++) {
-    size_t field_len;
-    const char* field_str =
-      dh_header_field_string(&field_len, &header->fields[i]);
-    len += field_len + 2;
-    free((void*)field_str);
+    len += header->fields[i].key_len + header->fields[i].value_len + 4;
   }
 
   char* str = malloc(len);
   CHECK_MALLOC(str);
 
-  snprintf(str, len, "%s %s %s", method_str, header->request_uri, protocol_str);
+  size_t offset = 0;
   for (size_t i = 0; i < header->fields_len; i++) {
+    dh_header_field* field = &header->fields[i];
     size_t field_len;
-    const char* field_str =
-      dh_header_field_string(&field_len, &header->fields[i]);
-    strncat(str, "\n", 1);
-    strncat(str, field_str, len - strlen(str) - 1);
+    const char* field_str = dh_header_field_string(&field_len, field);
+    memcpy(str + offset, field_str, field_len);
+    offset += field_len;
     free((void*)field_str);
   }
 
   *length = len;
   return str;
 }
+const char* dh_request_string(size_t* length, dh_request* request) {
+  size_t len = 0;
+  size_t method_len = 0;
+  size_t protocol_len = 0;
 
-const char* dh_message_string(dh_message* message) {
-  size_t header_len;
-  const char* header_str = dh_header_string(&header_len, message->header);
-  size_t len = header_len + message->body_len + 1;
-  char* str = malloc(len);
+  const char* method_str =
+    dh_header_method_string(&method_len, request->method);
+  const char* protocol_str =
+    dh_header_protocol_string(&protocol_len, request->protocol);
+
+  len += method_len + request->request_uri_len + protocol_len + 4;
+
+  for (size_t i = 0; i < request->header->fields_len; i++) {
+    len += request->header->fields[i].key_len +
+           request->header->fields[i].value_len + 4;
+  }
+
+  len += request->body_len;
+  char* str = malloc(len + 1);
   CHECK_MALLOC(str);
 
-  snprintf(str, len, "%s\n%s", header_str, message->body);
-  free((void*)header_str);
+  size_t offset = 0;
+  memcpy(str + offset, method_str, method_len);
+  offset += method_len;
+
+  str[offset] = ' ';
+  offset += 1;
+
+  memcpy(str + offset, request->request_uri, request->request_uri_len);
+  offset += request->request_uri_len;
+  str[offset] = ' ';
+  offset += 1;
+
+  memcpy(str + offset, protocol_str, protocol_len);
+  offset += protocol_len;
+  str[offset] = '\n';
+  offset += 1;
+
+  for (size_t i = 0; i < request->header->fields_len; i++) {
+    dh_header_field* field = &request->header->fields[i];
+    size_t field_len;
+    const char* field_str = dh_header_field_string(&field_len, field);
+    memcpy(str + offset, field_str, field_len);
+    offset += field_len;
+    free((void*)field_str);
+  }
+
+  if (request->body_len > 0) {
+    memcpy(str + offset, request->body, request->body_len);
+    offset += request->body_len;
+  }
+
+  str[offset] = '\0';
+  *length = offset;
+
   return str;
 }
