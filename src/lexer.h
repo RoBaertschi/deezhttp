@@ -11,6 +11,25 @@ typedef struct {
     size_t string_len;
 } dh_lexer;
 
+typedef enum {
+    DH_OCTET,
+    DH_CHAR,
+    DH_UPALPHA,
+    DH_LOALPHA,
+    DH_ALPHA,
+    DH_DIGIT,
+    DH_CTL,
+    DH_CR,
+    DH_LF,
+    DH_SP,
+    DH_HT,
+    DH_DOUBLE_QUOTE,
+} dh_token_type;
+
+typedef struct {
+
+} dh_token;
+
 dh_lexer dh_create_lexer(const char* string, size_t string_len);
 void dh_lexer_next_ch(dh_lexer* lexer);
 

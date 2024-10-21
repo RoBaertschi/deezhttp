@@ -9,7 +9,7 @@ dh_lexer dh_create_lexer(const char* string, size_t string_len) {
     dh_lexer lexer = (dh_lexer){
         .position = 0,
         .peek_position = 0,
-        .string = string,
+        .string = allocated_string,
         .string_len = string_len,
         .ch = 0,
     };
