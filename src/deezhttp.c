@@ -17,19 +17,6 @@
 void handle_message(const char* message, size_t message_len) {}
 
 int main(int argc, char** argv) {
-  dh_response response = {
-    .protocol = DH_HTTP_1_0,
-    .status_code = DH_OK,
-    .header = NULL,
-    .body = "Hello, World!",
-    .body_len = 13,
-  };
-
-  size_t response_len;
-  const char* response_str = dh_response_string(&response_len, &response);
-  printf("%s\n", response_str);
-  free(response_str);
-
   int sockfd, len;
   struct sockaddr_in addr;
   socklen_t addr_size;
