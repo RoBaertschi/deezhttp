@@ -65,6 +65,10 @@ int main(int argc, char** argv) {
     size_t string_cap = 0;
     size_t string_size = 0;
     bool received = false;
+    
+    char status_line[] = "HTTP/1.0 200 OK \r\nContent-Length: 0\r\n\r\n";
+    write(cfd, status_line, sizeof(status_line) / sizeof(char));
+
     while ((nbytes_read = read(cfd, buffer, BUFSIZ)) > 0) {
       if (nbytes_read + string_size > string_cap) {
         string = malloc(nbytes_read + string_size * sizeof(char));
@@ -82,7 +86,7 @@ int main(int argc, char** argv) {
       for (int i = 0; i < nbytes_read; i++) {
         buffer[i]++;
       }
-      write(cfd, buffer, nbytes_read);
+      // write(cfd, buffer, nbytes_read);
       if (newline_found) {
         break;
       }
