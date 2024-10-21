@@ -4,6 +4,7 @@ srcs = [
   'src/deezhttp.c',
   'src/lexer.c',
   'src/header.c',
+  'src/error.c'
 ]
 
 exe = executable('deezhttp', srcs, install: true)
