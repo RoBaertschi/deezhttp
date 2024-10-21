@@ -7,6 +7,10 @@ srcs = [
   'src/error.c'
 ]
 
+if get_option('buildtype') == 'debug'
+  add_project_arguments('-DDEBUG_ENABLE', language: 'c')
+endif
+
 exe = executable('deezhttp', srcs, install: true)
 
 test('basic', exe)
