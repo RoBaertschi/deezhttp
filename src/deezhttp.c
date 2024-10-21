@@ -4,6 +4,7 @@
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <string.h>
 #include <sys/socket.h>
 #include <sys/types.h>
@@ -12,7 +13,7 @@
 
 #include "error.h"
 
-#define PROJECT_NAME "deezhttp"
+void handle_message(const char* message, size_t message_len) {}
 
 int main(int argc, char** argv) {
   int sockfd, len;
@@ -59,8 +60,20 @@ int main(int argc, char** argv) {
 
     int nbytes_read = 0;
     char buffer[BUFSIZ] = {0};
+    char* string = NULL;
+    size_t string_cap = 0;
+    size_t string_size = 0;
+    bool received = false;
     while ((nbytes_read = read(cfd, buffer, BUFSIZ)) > 0) {
-      printf("received:\n");
+      if (nbytes_read + string_size > string_cap) {
+        string = malloc(nbytes_read + string_size * sizeof(char));
+        string_cap = nbytes_read + string_size;
+      }
+
+      if (!received) {
+        printf("received:\n");
+        received = true;
+      }
       write(STDOUT_FILENO, buffer, nbytes_read);
       if (buffer[nbytes_read - 1] == '\n') {
         newline_found = 1;
@@ -73,6 +86,8 @@ int main(int argc, char** argv) {
         break;
       }
     }
+    received = false;
+    free(string);
     close(cfd);
   }
 
