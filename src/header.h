@@ -9,8 +9,7 @@ const char* dh_header_method_string(size_t* length, dh_http_method method);
 typedef enum { DH_HTTP_1_0, DH_HTTP_INVALID } dh_protocol;
 const char* dh_header_protocol_string(size_t* length, dh_protocol protocol);
 
-typedef enum { DH_OK, DH_BAD_REQUEST, DH_NOT_FOUND } dh_status_code;
-const char* dh_status_code_string(size_t* length, dh_status_code status_code);
+typedef enum { DH_OK = 200, DH_NOT_FOUND = 404 } dh_status_code;
 
 typedef struct {
   const char* key;
@@ -39,14 +38,4 @@ typedef struct {
 } dh_request;
 
 const char* dh_request_string(size_t* length, dh_request* request);
-
-typedef struct {
-  dh_status_code status_code;
-  dh_header* header;
-  const char* body;
-  size_t body_len;
-} dh_response;
-
-const char* dh_response_string(size_t* length, dh_response* response);
-
 #endif  // DEEZHTTP_HEADER_H_
