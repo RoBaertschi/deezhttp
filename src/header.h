@@ -6,7 +6,7 @@
 typedef enum { DH_GET, DH_POST, DH_HEAD } dh_http_method;
 const char* dh_header_method_string(size_t* length, dh_http_method method);
 
-typedef enum { DH_HTTP_1_0, DH_HTTP_INVALID } dh_protocol;
+typedef enum { DH_HTTP_1_0, DH_HTTP_0_9, DH_HTTP_INVALID } dh_protocol;
 const char* dh_header_protocol_string(size_t* length, dh_protocol protocol);
 
 typedef enum {

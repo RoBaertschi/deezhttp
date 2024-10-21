@@ -22,6 +22,9 @@ inline const char* dh_header_protocol_string(size_t* length,
     case DH_HTTP_1_0:
       *length = 9;
       return "HTTP/1.0";
+    case DH_HTTP_0_9:
+      *length = 9;
+      return "HTTP/0.9";
     case DH_HTTP_INVALID:
       *length = 8;
       return "INVALID";
@@ -155,15 +158,18 @@ const char* dh_request_string(size_t* length, dh_request* request) {
 }
 
 const char* dh_response_string(size_t* length, dh_response* response) {
-  size_t len, protocol_len;
+  if (response->protocol == DH_HTTP_0_9) {
+    *length = response->body_len;
+    return response->body;
+  }
+
+  size_t len, protocol_len, header_len, reason_len;
 
   const char* protocol_str =
     dh_header_protocol_string(&protocol_len, response->protocol);
 
-  size_t header_len;
   const char* header_str = dh_header_string(&header_len, response->header);
 
-  size_t reason_len;
   const char* reason_str =
     dh_header_status_reason(&reason_len, response->status_code);
 
