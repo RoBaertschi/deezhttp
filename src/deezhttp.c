@@ -1,10 +1,10 @@
 #include <errno.h>
 #include <netdb.h>
 #include <netinet/in.h>
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdbool.h>
 #include <string.h>
 #include <sys/socket.h>
 #include <sys/types.h>
@@ -12,10 +12,24 @@
 #include <unistd.h>
 
 #include "error.h"
+#include "src/header.h"
 
 void handle_message(const char* message, size_t message_len) {}
 
 int main(int argc, char** argv) {
+  dh_response response = {
+    .protocol = DH_HTTP_1_0,
+    .status_code = DH_OK,
+    .header = NULL,
+    .body = "Hello, World!",
+    .body_len = 13,
+  };
+
+  size_t response_len;
+  const char* response_str = dh_response_string(&response_len, &response);
+  printf("%s\n", response_str);
+  free(response_str);
+
   int sockfd, len;
   struct sockaddr_in addr;
   socklen_t addr_size;

@@ -48,6 +48,10 @@ const char* dh_header_method_string(size_t* length, dh_http_method method) {
 }
 
 const char* dh_header_string(size_t* length, dh_header* header) {
+  if (header == NULL) {
+    *length = 0;
+    return "";
+  }
   size_t len = 0;
 
   for (size_t i = 0; i < header->fields_len; i++) {
