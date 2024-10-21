@@ -72,6 +72,60 @@ const char* dh_header_string(size_t* length, dh_header* header) {
   return str;
 }
 
+const char* dh_header_status_reason(size_t* length,
+                                    dh_status_code status_code) {
+  switch (status_code) {
+    case DH_OK:
+      *length = 3;
+      return "OK";
+    case DH_CREATED:
+      *length = 9;
+      return "Created";
+    case DH_ACCEPTED:
+      *length = 10;
+      return "Accepted";
+    case DH_NO_CONTENT:
+      *length = 11;
+      return "No Content";
+    case DH_MOVED_PERMANENTLY:
+      *length = 18;
+      return "Moved Permanently";
+    case DH_MOVED_TEMPORARILY:
+      *length = 18;
+      return "Moved Temporarily";
+    case DH_NOT_MODIFIED:
+      *length = 13;
+      return "Not Modified";
+    case DH_BAD_REQUEST:
+      *length = 12;
+      return "Bad Request";
+    case DH_UNAUTHORIZED:
+      *length = 13;
+      return "Unauthorized";
+    case DH_FORBIDDEN:
+      *length = 10;
+      return "Forbidden";
+    case DH_NOT_FOUND:
+      *length = 10;
+      return "Not Found";
+    case DH_INTERNAL_SERVER_ERROR:
+      *length = 22;
+      return "Internal Server Error";
+    case DH_NOT_IMPLEMENTED:
+      *length = 16;
+      return "Not Implemented";
+    case DH_BAD_GATEWAY:
+      *length = 12;
+      return "Bad Gateway";
+    case DH_SERVICE_UNAVAILABLE:
+      *length = 20;
+      return "Service Unavailable";
+  }
+
+  *length = 0;
+  return 0;
+}
+
 const char* dh_request_string(size_t* length, dh_request* request) {
   size_t len, method_len, protocol_len;
 
@@ -105,14 +159,17 @@ const char* dh_response_string(size_t* length, dh_response* response) {
   size_t header_len;
   const char* header_str = dh_header_string(&header_len, response->header);
 
+  size_t reason_len;
+  const char* reason_str =
+    dh_header_status_reason(&reason_len, response->status_code);
+
   len = protocol_len + response->status_code + header_len + response->body_len +
-        response->reason_phrase_len + 6;
+        reason_len + 6;
 
   char* str = malloc(len + 1);
   CHECK_MALLOC(str);
   snprintf(str, len + 1, "%s %d %s\r\n%s\r\n%s", protocol_str,
-           response->status_code, response->reason_phrase, header_str,
-           response->body);
+           response->status_code, reason_str, header_str, response->body);
 
   *length = len;
   return str;
