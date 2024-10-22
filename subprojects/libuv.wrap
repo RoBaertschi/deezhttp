@@ -1,0 +1,4 @@
+[wrap-git]
+directory = libuv
+url = https://github.com/libuv/libuv.git
+revision = v1.49.2

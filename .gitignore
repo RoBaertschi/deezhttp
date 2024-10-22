@@ -59,3 +59,6 @@ builddir
 .cache
 .vscode
 .idea
+
+# Subproject build folders
+subprojects/libuv
