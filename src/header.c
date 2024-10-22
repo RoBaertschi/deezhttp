@@ -44,7 +44,7 @@ const char* dh_header_method_string(size_t* length, dh_http_method method) {
   } else if (method == DH_HEAD) {
     *length = 5;
     return "HEAD";
-  } else if (method == DH_INVALID) {
+  } else if (method == DH_METHOD_INVALID) {
     *length = 8;
     return "INVALID";
   }

@@ -5,11 +5,15 @@ cmake = import('cmake')
 srcs = [
   'src/deezhttp.c',
   'src/header.c',
-  'src/error.c'
+  'src/error.c',
 ]
 
-libuv_subproj = cmake.subproject('libuv', cmake_options: ['-DCMAKE_BUILD_TYPE=Release'])
-libuv_dep = libuv_subproj.dependency('uv')
+libuv_dep = dependency('libuv', required: false)
+
+if not libuv_dep.found()
+  libuv_subproj = cmake.subproject('libuv', cmake_options: ['-DCMAKE_BUILD_TYPE=Release'])
+  libuv_dep = libuv_subproj.dependency('uv')
+endif
 
 if get_option('buildtype') == 'debug'
   add_project_arguments('-DDEBUG_ENABLE', language: 'c')
