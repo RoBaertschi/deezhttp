@@ -1,17 +1,9 @@
-#include <errno.h>
-#include <netdb.h>
-#include <netinet/in.h>
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_error.h>
+#include <SDL2/SDL_net.h>
 #include <stdbool.h>
-#include <stddef.h>
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/socket.h>
-#include <sys/types.h>
-#include <sys/un.h>
-#include <unistd.h>
-
-#include "error.h"
+#include <time.h>
 
 void parse_until_content_length(int cfd) {}
 
@@ -22,47 +14,45 @@ void handle_message(int cfd) {
 }
 
 int main(int argc, char** argv) {
-  int sockfd, len;
-  struct sockaddr_in addr;
-  socklen_t addr_size;
-  bool newline_found = false;
-  char protoname[] = "tcp";
-
-  struct protoent* protoent;
-  protoent = getprotobyname(protoname);
-
-  if (protoent == NULL) {
-    panic("Could not get protoent entry for tcp %s", strerror(errno));
+  if (SDL_Init(0) != 0) {
+    fprintf(stderr, "could not initalize SDL2 %s", SDL_GetError());
+    return EXIT_FAILURE;
+  }
+  if (SDLNet_Init() < 0) {
+    fprintf(stderr, "could not initalize SDL2Net %s", SDLNet_GetError());
+    SDL_Quit();
+    return EXIT_FAILURE;
   }
 
-  int sfd = socket(AF_INET, SOCK_STREAM, protoent->p_proto);
+  IPaddress addr = {
+    .host = INADDR_ANY,
+    .port = 8086,
+  };
 
-  if (sfd == -1) {
-    panic("Could not create socket %s", strerror(errno));
-  }
-  int enable = 1;
-
-  if (setsockopt(sfd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(enable)) < 0) {
-    panic("setsockopt(SO_REUSEADDR) failed %s", strerror(errno));
-  }
-
-  addr.sin_family = AF_INET;
-  addr.sin_addr.s_addr = htonl(INADDR_ANY);
-  addr.sin_port = htons(8086);
-  if (bind(sfd, (struct sockaddr*)&addr, sizeof(addr)) == -1) {
-    panic("Could not bind port 8086 %s", strerror(errno));
+  SDLNet_ResolveHost(&addr, NULL, 8086);
+  printf("Server IP: %x, %d\n", addr.host, addr.port);
+  TCPsocket socket = SDLNet_TCP_Open(&addr);
+  SDLNet_SocketSet socketset = SDLNet_AllocSocketSet(1);
+  if (socketset == NULL) {
+    fprintf(stderr, "could not allocate socket set of size 1 %s", SDLNet_GetError());
+    return EXIT_FAILURE;
   }
 
-  if (listen(sfd, 5) == -1) {
-    panic("Failed to listen to port %s", strerror(errno));
-  }
-
-  fprintf(stderr, "listening on port 8086\n");
+  SDLNet_AddSocket(socketset, (SDLNet_GenericSocket)socket);
 
   while (1) {
-    struct sockaddr_in client_addr = {0};
-    socklen_t client_len = sizeof(client_addr);
-    int cfd = accept(sfd, (struct sockaddr*)&client_addr, &client_len);
+    SDLNet_CheckSockets(socketset, ~0);
+    if (!SDLNet_SocketReady(socket)) {
+      continue;
+    }
+
+    TCPsocket client = SDLNet_TCP_Accept(socket);
+    if (client == NULL) {
+      SDLNet_Quit();
+      SDL_Quit();
+      fprintf(stderr, "failed to accept tcp %s\n", SDLNet_GetError());
+      continue;
+    }
 
     int nbytes_read = 0;
     char buffer[BUFSIZ] = {0};
@@ -70,8 +60,9 @@ int main(int argc, char** argv) {
     size_t string_cap = 0;
     size_t string_size = 0;
     bool received = false;
+    bool newline_found = false;
 
-    while ((nbytes_read = read(cfd, buffer, BUFSIZ)) > 0) {
+    while ((nbytes_read = SDLNet_TCP_Recv(client, buffer, BUFSIZ)) > 0) {
       if (nbytes_read + string_size > string_cap) {
         char* new_string = malloc(nbytes_read + string_size * sizeof(char));
         memcpy(new_string, string, string_size);
@@ -87,7 +78,7 @@ int main(int argc, char** argv) {
         printf("received:\n");
         received = true;
       }
-      write(STDOUT_FILENO, buffer, nbytes_read);
+      fwrite(buffer, 1, nbytes_read, stdout);
       if (buffer[nbytes_read - 1] == '\n') {
         newline_found = true;
       }
@@ -111,9 +102,16 @@ int main(int argc, char** argv) {
     string_size = 0;
     string_cap = 0;
     string = NULL;
-    close(cfd);
+    SDLNet_TCP_Close(client);
     printf("closed connection with client\n");
   }
+
+  SDLNet_DelSocket(socketset, (SDLNet_GenericSocket)socket);
+  SDLNet_TCP_Close(socket);
+
+  SDLNet_Quit();
+  SDL_Quit();
+
 
   return 0;
 }
