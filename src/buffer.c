@@ -1,4 +1,4 @@
-#include "stream.h"
+#include "buffer.h"
 
 #include "error.h"
 

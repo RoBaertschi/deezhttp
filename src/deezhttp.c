@@ -12,7 +12,7 @@
 #include <unistd.h>
 
 #include "error.h"
-#include "stream.h"
+#include "buffer.h"
 
 void parse_until_content_length(int cfd) {}
 
