@@ -3,7 +3,21 @@
 
 #include <stddef.h>
 
-typedef enum { DH_GET, DH_POST, DH_HEAD, DH_METHOD_INVALID } dh_http_method;
+
+// X Macro list for each _VALID_ method
+#define DH_HTTP_METHODS \
+  X("GET", DH_GET) \
+  X("POST", DH_POST) \
+  X("HEAD", DH_HEAD)
+
+#define DH_ALL_HTTP_METHODS DH_HTTP_METHODS \
+  X("INVALID", DH_METHOD_INVALID)
+
+typedef enum { 
+#define X(str, name) name,
+  DH_ALL_HTTP_METHODS
+#undef X
+} dh_http_method;
 const char* dh_header_method_string(size_t* length, dh_http_method method);
 
 typedef enum { DH_HTTP_1_0, DH_HTTP_0_9, DH_HTTP_INVALID } dh_protocol;

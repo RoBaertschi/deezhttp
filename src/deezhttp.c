@@ -5,13 +5,15 @@
 #include <stdio.h>
 #include <time.h>
 #include "buffer.h"
+#include "parser.h"
 
 void parse_until_content_length(int cfd) {}
 
-void handle_message(int cfd) {
+void handle_message(TCPsocket socket, dh_buffer buffer) {
   /*char status_line[] = "HTTP/1.0 200 OK\r\nContent-Type: text/plain\r\n\r\n";*/
   /*write(cfd, status_line, sizeof(status_line) / sizeof(char) - 1);*/
   /*write(cfd, message, message_len);*/
+  dh_parse_request(&buffer);
 }
 
 int main(int argc, char** argv) {
@@ -76,7 +78,7 @@ int main(int argc, char** argv) {
     printf("received:\n%s\n---\n", string_buffer.buffer);
 
     dh_buffer_push(&string_buffer, "\n", 2);
-    /*handle_message(cfd, string, string_size);*/
+    handle_message(socket, string_buffer);
     SDLNet_TCP_Close(client);
     printf("closed connection with client\n");
   }

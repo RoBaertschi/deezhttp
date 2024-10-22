@@ -1,9 +1,11 @@
 #include "parser.h"
+
 #include <SDL_net.h>
-#include <unistd.h>
+#include <stddef.h>
 #include <stdio.h>
 #include <string.h>
-#include <stddef.h>
+#include <unistd.h>
+
 #include "buffer.h"
 #include "header.h"
 
@@ -15,20 +17,82 @@ typedef struct {
   dh_request wip;
 } parser;
 
-void parser_read_ch(parser* p) {
+void parser_read_ch(parser *p) {
   if (p->peek_pos >= p->buffer->size) {
     p->ch = 0;
+  } else {
+    p->ch = p->buffer->buffer[p->peek_pos];
   }
+  p->pos = p->peek_pos;
+  p->peek_pos += 1;
 }
 
-dh_request dh_parse_request(TCPsocket socket, dh_buffer *buffer) {
-  parser parser = {
+bool parser_has_char(parser *p, size_t pos) {
+  if (pos >= p->buffer->size) {
+    return false;
+  }
+  return true;
+}
+
+static const char *methods[] = {
+#define X(name, enum) name,
+  DH_HTTP_METHODS
+#undef X
+};
+static const size_t methods_lengths[] = {
+#define X(name, enum) sizeof(name) / sizeof(char),
+  DH_HTTP_METHODS
+#undef X
+};
+static const dh_http_method methods_map[] = {
+#define X(name, enum) enum,
+  DH_HTTP_METHODS
+#undef X
+};
+
+static const size_t methods_len = sizeof(methods) / sizeof(char *);
+
+dh_http_method parse_method(parser *p) {
+  for (size_t i = 0; i < methods_len; i++) {
+    if (p->ch == methods[i][0]) {
+      for (size_t j = 0; j < methods_lengths[i] - 1; j++) {
+        if (!parser_has_char(p, p->pos + j)) {
+         break;
+        }
+        if (p->buffer->buffer[p->pos + j] != methods[i][j]) {
+          break;
+        }
+
+        if (j + 1 < methods_lengths[i] - 1) {
+          for (size_t k = 0; k < methods_lengths[i] - 1; k++) {
+            parser_read_ch(p);
+          }
+          return methods_map[i];
+        }
+      }
+    }
+  }
+
+  return DH_METHOD_INVALID;
+}
+
+dh_request dh_parse_request(dh_buffer *buffer) {
+  parser p = {
     .buffer = buffer,
     .wip = {0},
     .pos = 0,
     .ch = 0,
   };
+  if (0 < buffer->size) {
+    p.ch = buffer->buffer[0];
+  }
 
+  dh_http_method method = parse_method(&p);
+
+  size_t null = 0;
+  printf("%s", dh_header_method_string(&null, method));
+
+  return p.wip;
 }
 
 dh_http_method get_method(int cfd, bool *space_eaten) {
@@ -44,7 +108,7 @@ dh_http_method get_method(int cfd, bool *space_eaten) {
     *space_eaten = true;
     return DH_GET;
   } else if (strncmp(buffer, "POST", 4) == 0) {
-   return DH_POST;
+    return DH_POST;
   } else if (strncmp(buffer, "HEAD", 4) == 0) {
     return DH_HEAD;
   }
@@ -57,7 +121,7 @@ char eat_spaces(int cfd) {
   size_t bytes = 0;
   do {
     bytes = read(cfd, &c, 1);
-  } while(c == ' ' && bytes != 0);
+  } while (c == ' ' && bytes != 0);
   return c;
 }
 
