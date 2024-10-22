@@ -6,11 +6,18 @@
 #include <stdbool.h>
 #include "result.h"
 
+typedef enum {
+  DH_PARSE_INVALID_METHOD
+} dh_parse_error;
+
 #include <stdio.h>
 
-RESULT(rdh_request, dh_request, bool)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-function"
+RESULT(rdh_request, dh_request, dh_parse_error)
+#pragma GCC diagnostic pop
 
 
-dh_request dh_parse_request(dh_buffer *buffer);
+rdh_request dh_parse_request(dh_buffer *buffer);
 
 #endif // DEEZHTTP_PARSER_H_

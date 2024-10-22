@@ -34,6 +34,12 @@ bool parser_has_char(parser *p, size_t pos) {
   return true;
 }
 
+void parser_eat_space(parser *p) {
+  while (p->ch == ' ' || p->ch == '\t') {
+    parser_read_ch(p);
+  }
+}
+
 static const char *methods[] = {
 #define X(name, enum) name,
   DH_HTTP_METHODS
@@ -76,7 +82,8 @@ dh_http_method parse_method(parser *p) {
   return DH_METHOD_INVALID;
 }
 
-dh_request dh_parse_request(dh_buffer *buffer) {
+
+rdh_request dh_parse_request(dh_buffer *buffer) {
   parser p = {
     .buffer = buffer,
     .wip = {0},
@@ -88,11 +95,16 @@ dh_request dh_parse_request(dh_buffer *buffer) {
   }
 
   dh_http_method method = parse_method(&p);
+  if (method == DH_METHOD_INVALID) {
+   return rdh_request_err(DH_PARSE_INVALID_METHOD);
+  }
 
   size_t null = 0;
   printf("%s", dh_header_method_string(&null, method));
 
-  return p.wip;
+  parser_eat_space(&p);
+
+  return rdh_request_ok(p.wip);
 }
 
 dh_http_method get_method(int cfd, bool *space_eaten) {
