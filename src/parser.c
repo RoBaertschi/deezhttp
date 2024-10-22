@@ -1,5 +1,5 @@
 #include "parser.h"
-#include <SDL2/SDL_net.h>
+#include <SDL_net.h>
 #include <unistd.h>
 #include <stdio.h>
 #include <string.h>
@@ -9,11 +9,17 @@
 
 typedef struct {
   size_t pos;
+  size_t peek_pos;
   char ch;
   dh_buffer *buffer;
   dh_request wip;
 } parser;
 
+void parser_read_ch(parser* p) {
+  if (p->peek_pos >= p->buffer->size) {
+    p->ch = 0;
+  }
+}
 
 dh_request dh_parse_request(TCPsocket socket, dh_buffer *buffer) {
   parser parser = {
@@ -22,6 +28,7 @@ dh_request dh_parse_request(TCPsocket socket, dh_buffer *buffer) {
     .pos = 0,
     .ch = 0,
   };
+
 }
 
 dh_http_method get_method(int cfd, bool *space_eaten) {
