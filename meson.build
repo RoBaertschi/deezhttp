@@ -9,7 +9,8 @@ srcs = [
 ]
 
 libuv_dep = dependency('libuv')
-sdl2_net_dep = dependency('SDL2_net', version: '>=2.2.0')
+sdl2_net_sub = subproject('sdl2_net')
+sdl2_net_dep = sdl2_net_sub.get_variable('sdl2_net_dep')
 sdl2_dep = dependency('sdl2')
 
 if get_option('buildtype') == 'debug'

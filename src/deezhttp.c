@@ -1,6 +1,6 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_error.h>
-#include <SDL2/SDL_net.h>
+#include <SDL_net.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <time.h>
@@ -57,30 +57,11 @@ int main(int argc, char** argv) {
 
     int nbytes_read = 0;
     char buffer[BUFSIZ] = {0};
-    char* string = NULL;
-    size_t string_cap = 0;
-    size_t string_size = 0;
-    bool received = false;
     bool newline_found = false;
     dh_buffer string_buffer = dh_buffer_new(0);
 
     while ((nbytes_read = SDLNet_TCP_Recv(client, buffer, BUFSIZ)) > 0) {
-      if (nbytes_read + string_size > string_cap) {
-        char* new_string = malloc(nbytes_read + string_size * sizeof(char));
-        memcpy(new_string, string, string_size);
-        free(string);
-        string = new_string;
-        string_cap = nbytes_read + string_size;
-      }
-
-      memcpy(string + string_size, buffer, nbytes_read);
-      string_size += nbytes_read;
-
-      if (!received) {
-        printf("received:\n");
-        received = true;
-      }
-      fwrite(buffer, 1, nbytes_read, stdout);
+      dh_buffer_push(&string_buffer, buffer, nbytes_read);
       if (buffer[nbytes_read - 1] == '\n') {
         newline_found = true;
       }
@@ -88,22 +69,14 @@ int main(int argc, char** argv) {
         buffer[i]++;
       }
       if (newline_found) {
-        printf("\n");
         newline_found = false;
         break;
       }
     }
-    if (string_cap <= string_size) {
-      string = realloc(string, string_size + 1);
-      string[string_size] = '\0';
-    }
-    string_size += 1;
+    printf("received:\n%s\n---\n", string_buffer.buffer);
+
+    dh_buffer_push(&string_buffer, "\n", 2);
     /*handle_message(cfd, string, string_size);*/
-    received = false;
-    free(string);
-    string_size = 0;
-    string_cap = 0;
-    string = NULL;
     SDLNet_TCP_Close(client);
     printf("closed connection with client\n");
   }

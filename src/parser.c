@@ -1,8 +1,28 @@
 #include "parser.h"
+#include <SDL2/SDL_net.h>
 #include <unistd.h>
 #include <stdio.h>
 #include <string.h>
+#include <stddef.h>
+#include "buffer.h"
 #include "header.h"
+
+typedef struct {
+  size_t pos;
+  char ch;
+  dh_buffer *buffer;
+  dh_request wip;
+} parser;
+
+
+dh_request dh_parse_request(TCPsocket socket, dh_buffer *buffer) {
+  parser parser = {
+    .buffer = buffer,
+    .wip = {0},
+    .pos = 0,
+    .ch = 0,
+  };
+}
 
 dh_http_method get_method(int cfd, bool *space_eaten) {
   *space_eaten = false;
