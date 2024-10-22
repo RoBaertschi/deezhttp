@@ -59,6 +59,7 @@ builddir
 .cache
 .vscode
 .idea
+compile_commands.json
 
 # Subproject build folders
 subprojects/*
