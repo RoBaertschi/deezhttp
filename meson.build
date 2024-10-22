@@ -6,6 +6,7 @@ srcs = [
   'src/deezhttp.c',
   'src/header.c',
   'src/error.c',
+  'src/stream.c'
 ]
 
 libuv_dep = dependency('libuv', required: false)

@@ -12,13 +12,15 @@
 #include <unistd.h>
 
 #include "error.h"
+#include "stream.h"
 
 void parse_until_content_length(int cfd) {}
 
-void handle_message(int cfd) {
-  /*char status_line[] = "HTTP/1.0 200 OK\r\nContent-Type: text/plain\r\n\r\n";*/
-  /*write(cfd, status_line, sizeof(status_line) / sizeof(char) - 1);*/
-  /*write(cfd, message, message_len);*/
+void handle_message(int cfd, dh_buffer* stream) {
+  // Example: Send a simple HTTP response
+  char status_line[] = "HTTP/1.0 200 OK\r\nContent-Type: text/plain\r\n\r\n";
+  write(cfd, status_line, sizeof(status_line) - 1);
+  write(cfd, stream->buffer, stream->size);
 }
 
 int main(int argc, char** argv) {
@@ -64,35 +66,27 @@ int main(int argc, char** argv) {
     socklen_t client_len = sizeof(client_addr);
     int cfd = accept(sfd, (struct sockaddr*)&client_addr, &client_len);
 
+    // Initialize a new stream
+    dh_buffer stream = dh_stream_new(0);
+
     int nbytes_read = 0;
     char buffer[BUFSIZ] = {0};
-    char* string = NULL;
-    size_t string_cap = 0;
-    size_t string_size = 0;
     bool received = false;
 
+    // Read data into the stream
     while ((nbytes_read = read(cfd, buffer, BUFSIZ)) > 0) {
-      if (nbytes_read + string_size > string_cap) {
-        char* new_string = malloc(nbytes_read + string_size * sizeof(char));
-        memcpy(new_string, string, string_size);
-        free(string);
-        string = new_string;
-        string_cap = nbytes_read + string_size;
-      }
-
-      memcpy(string + string_size, buffer, nbytes_read);
-      string_size += nbytes_read;
+      // Push the data into the stream
+      dh_stream_push(&stream, buffer, nbytes_read);
 
       if (!received) {
         printf("received:\n");
         received = true;
       }
       write(STDOUT_FILENO, buffer, nbytes_read);
+
+      // Check for a newline to terminate the reading loop
       if (buffer[nbytes_read - 1] == '\n') {
         newline_found = true;
-      }
-      for (int i = 0; i < nbytes_read; i++) {
-        buffer[i]++;
       }
       if (newline_found) {
         printf("\n");
@@ -100,17 +94,18 @@ int main(int argc, char** argv) {
         break;
       }
     }
-    if (string_cap <= string_size) {
-      string = realloc(string, string_size + 1);
-      string[string_size] = '\0';
-    }
-    string_size += 1;
-    /*handle_message(cfd, string, string_size);*/
+
+    // Null-terminate the stream buffer for easier handling of string data
+    dh_stream_push(&stream, "\0", 1);
+    printf("stream size: %zu\n", stream.size);
+
+    // Handle the received message
+    handle_message(cfd, &stream);
+
+    // Clean up and free the stream buffer
     received = false;
-    free(string);
-    string_size = 0;
-    string_cap = 0;
-    string = NULL;
+    dh_stream_shrink(&stream);  // Shrink the stream before ending
+    free(stream.buffer);
     close(cfd);
     printf("closed connection with client\n");
   }
