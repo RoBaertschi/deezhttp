@@ -1,3 +1,5 @@
+#ifndef DEEZHTTP_RESULT_H_
+#define DEEZHTTP_RESULT_H_
 #include <stdbool.h>
 
 #define RESULT(N, T, E)                                                      \
@@ -26,3 +28,5 @@
   }                                                                          \
   static inline bool N##_is_ok(N result) { return result.is_ok; }            \
   static inline bool N##_is_err(N result) { return !result.is_ok; }
+
+#endif  // DEEZHTTP_RESULT_H_
