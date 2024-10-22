@@ -3,11 +3,11 @@
 #include <SDL_net.h>
 #include <stddef.h>
 #include <stdio.h>
-#include <string.h>
 #include <unistd.h>
 
 #include "buffer.h"
 #include "header.h"
+#include "utils.h"
 
 typedef struct {
   size_t pos;
@@ -63,7 +63,7 @@ dh_http_method parse_method(parser *p) {
     if (p->ch == methods[i][0]) {
       for (size_t j = 0; j < methods_lengths[i] - 1; j++) {
         if (!parser_has_char(p, p->pos + j)) {
-         break;
+          break;
         }
         if (p->buffer->buffer[p->pos + j] != methods[i][j]) {
           break;
@@ -82,6 +82,7 @@ dh_http_method parse_method(parser *p) {
   return DH_METHOD_INVALID;
 }
 
+rdh_uri dh_parse_uri(dh_buffer *buffer) { return rdh_uri_ok("to do"); }
 
 rdh_request dh_parse_request(dh_buffer *buffer) {
   parser p = {
@@ -93,10 +94,13 @@ rdh_request dh_parse_request(dh_buffer *buffer) {
   if (0 < buffer->size) {
     p.ch = buffer->buffer[0];
   }
-
   dh_http_method method = parse_method(&p);
   if (method == DH_METHOD_INVALID) {
-   return rdh_request_err(DH_PARSE_INVALID_METHOD);
+    return rdh_request_err(DH_PARSE_INVALID_METHOD);
+  }
+  rdh_uri uri = dh_parse_uri(buffer);
+  if (rdh_uri_is_err(uri)) {
+    return rdh_request_err(DH_PARSE_INVALID_METHOD);
   }
 
   size_t null = 0;
@@ -106,4 +110,3 @@ rdh_request dh_parse_request(dh_buffer *buffer) {
 
   return rdh_request_ok(p.wip);
 }
-

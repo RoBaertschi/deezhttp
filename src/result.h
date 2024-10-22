@@ -25,7 +25,7 @@
   static inline N N##_ok(T ok) { return (N){.is_ok = true, .ok = ok}; }      \
   static inline N N##_err(E err) { return (N){.is_ok = false, .err = err}; } \
   UNUSED_FUNCTION static T N##_unwrap(N result) {                            \
-    if (!result.is_ok) {                                                     \
+    if (result.is_ok) {                                                      \
       return result.ok;                                                      \
     }                                                                        \
     fprintf(stderr, "called unwrap on an error result\n");                   \
