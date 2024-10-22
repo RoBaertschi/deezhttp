@@ -2,7 +2,7 @@
 Deez nuts in your http
 
 #### Tasks
-- [ ] Add string-stream
+- [x] Add string-stream
 - [ ] Add propper error handling
 - [ ] Result type
-- [ ] Arena allocator 
+- [ ] ~~Arena allocator~~ Cancelled for now
