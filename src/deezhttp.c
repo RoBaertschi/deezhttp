@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <time.h>
+#include "buffer.h"
 
 void parse_until_content_length(int cfd) {}
 
@@ -61,6 +62,7 @@ int main(int argc, char** argv) {
     size_t string_size = 0;
     bool received = false;
     bool newline_found = false;
+    dh_buffer string_buffer = dh_buffer_new(0);
 
     while ((nbytes_read = SDLNet_TCP_Recv(client, buffer, BUFSIZ)) > 0) {
       if (nbytes_read + string_size > string_cap) {
