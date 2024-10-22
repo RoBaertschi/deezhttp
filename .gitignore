@@ -61,4 +61,5 @@ builddir
 .idea
 
 # Subproject build folders
-subprojects/libuv
+subprojects/*
+!subprojects/*.wrap
